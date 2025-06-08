@@ -22,10 +22,9 @@ from typing import List
 BUILDPROP_LOCATIONS = [Path() / "default.prop",
                        Path() / "prop.default",]
 BUILDPROP_LOCATIONS += [Path() / dir / "build.prop"
-                        for dir in ["system", "vendor"]]
+                        for dir in ["system", "vendor", "system/system", "product", "my_product", "oppo_product"]]
 BUILDPROP_LOCATIONS += [Path() / dir / "etc" / "build.prop"
-                        for dir in ["system", "vendor"]]
-
+                        for dir in ["system", "vendor", "system/system", "product", "odm"]]
 FSTAB_LOCATIONS = [Path() / "etc" / "recovery.fstab"]
 FSTAB_LOCATIONS += [Path() / dir / "etc" / "recovery.fstab"
                     for dir in ["system", "vendor"]]
