@@ -19,12 +19,74 @@ from twrpdtgen import __version__ as version
 from twrpdtgen.templates import render_template
 from typing import List
 
-BUILDPROP_LOCATIONS = [Path() / "default.prop",
-                       Path() / "prop.default",]
+# Ubicaciones extendidas para buscar build.prop
+BUILDPROP_LOCATIONS = [
+	Path() / "default.prop",
+	Path() / "prop.default",
+]
+
+# Ubicaciones dentro del ramdisk extraído
 BUILDPROP_LOCATIONS += [Path() / dir / "build.prop"
                         for dir in ["system", "vendor"]]
 BUILDPROP_LOCATIONS += [Path() / dir / "etc" / "build.prop"
                         for dir in ["system", "vendor"]]
+
+# Ubicaciones adicionales específicas para el contexto del dump
+def get_extended_buildprop_locations(base_path: Path):
+	"""Obtener todas las ubicaciones posibles donde puede estar build.prop"""
+	locations = []
+	
+	# Ubicaciones estándar dentro del ramdisk
+	for location in BUILDPROP_LOCATIONS:
+		locations.append(base_path / location)
+	
+	# Obtener el directorio padre del ramdisk para buscar en el dump completo
+	dump_path = base_path.parent
+	
+	# Verificar si estamos en una estructura de dump completo
+	possible_dump_paths = [
+		dump_path,  # directorio actual
+		dump_path.parent,  # directorio padre
+		dump_path.parent.parent,  # directorio abuelo
+	]
+	
+	for dump_dir in possible_dump_paths:
+		if not dump_dir.exists():
+			continue
+			
+		# Ubicaciones específicas mencionadas por el usuario
+		extended_locations = [
+			# dump_path/system/system/build.prop
+			dump_dir / "system" / "system" / "build.prop",
+			dump_dir / "system" / "build.prop",
+			
+			# dump_path/vendor/build.prop
+			dump_dir / "vendor" / "build.prop",
+			
+			# dump_path/vendor_boot/ramdisk/default.prop
+			dump_dir / "vendor_boot" / "ramdisk" / "default.prop",
+			dump_dir / "vendor_boot" / "ramdisk" / "prop.default",
+			dump_dir / "vendor_boot" / "ramdisk" / "build.prop",
+			dump_dir / "vendor_boot" / "ramdisk" / "system" / "build.prop",
+			dump_dir / "vendor_boot" / "ramdisk" / "vendor" / "build.prop",
+			
+			# Otras ubicaciones comunes en dumps
+			dump_dir / "system" / "etc" / "build.prop",
+			dump_dir / "vendor" / "etc" / "build.prop",
+			dump_dir / "product" / "build.prop",
+			dump_dir / "system_ext" / "build.prop",
+			dump_dir / "odm" / "build.prop",
+			
+			# Ubicaciones en boot/recovery extraídos
+			dump_dir / "boot" / "ramdisk" / "default.prop",
+			dump_dir / "boot" / "ramdisk" / "prop.default",
+			dump_dir / "recovery" / "ramdisk" / "default.prop",
+			dump_dir / "recovery" / "ramdisk" / "prop.default",
+		]
+		
+		locations.extend(extended_locations)
+	
+	return locations
 
 FSTAB_LOCATIONS = [Path() / "etc" / "recovery.fstab"]
 FSTAB_LOCATIONS += [Path() / dir / "etc" / "recovery.fstab"
@@ -69,19 +131,27 @@ class DeviceTree:
 		LOGD("Getting device infos...")
 		self.build_prop = BuildProp()
 		
-		# Buscar archivos build.prop en el ramdisk disponible
+		# Buscar archivos build.prop en ubicaciones extendidas
 		build_prop_found = False
-		for build_prop_location in [ramdisk_path / location for location in BUILDPROP_LOCATIONS]:
+		search_locations = get_extended_buildprop_locations(ramdisk_path)
+		
+		LOGD(f"Searching for build.prop in {len(search_locations)} locations...")
+		
+		for build_prop_location in search_locations:
 			if not build_prop_location.is_file():
 				continue
 
 			LOGD(f"Loading build.prop from {build_prop_location}")
 			self.build_prop.import_props(build_prop_location)
 			build_prop_found = True
+			break  # Usar el primer build.prop encontrado
 
-		# Si no se encuentra ningún build.prop, lanzar error en lugar de crear uno
+		# Si no se encuentra ningún build.prop, lanzar error
 		if not build_prop_found:
-			raise AssertionError("No build.prop file found in the ramdisk")
+			LOGD("Searched locations:")
+			for location in search_locations:
+				LOGD(f"  - {location} ({'EXISTS' if location.exists() else 'NOT FOUND'})")
+			raise AssertionError("No build.prop file found in any of the searched locations")
 
 		# Crear DeviceInfo con el build.prop encontrado
 		self.device_info = DeviceInfo(self.build_prop)
