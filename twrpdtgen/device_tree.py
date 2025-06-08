@@ -22,16 +22,16 @@ from typing import List
 BUILDPROP_LOCATIONS = [Path() / "default.prop",
                        Path() / "prop.default",]
 BUILDPROP_LOCATIONS += [Path() / dir / "build.prop"
-                        for dir in ["system", "vendor", "system/system", "product", "my_product", "oppo_product"]]
+                        for dir in ["system", "vendor", "system/system", "vendor/vendor"]]
 BUILDPROP_LOCATIONS += [Path() / dir / "etc" / "build.prop"
-                        for dir in ["system", "vendor", "system/system", "product", "odm"]]
+                        for dir in ["system", "vendor", "system/system", "vendor/vendor"]]
 FSTAB_LOCATIONS = [Path() / "etc" / "recovery.fstab"]
 FSTAB_LOCATIONS += [Path() / dir / "etc" / "recovery.fstab"
-                    for dir in ["system", "vendor"]]
+                    for dir in ["system", "system/system", "vendor", "vendor/vendor"]]
 
 INIT_RC_LOCATIONS = [Path()]
 INIT_RC_LOCATIONS += [Path() / dir / "etc" / "init"
-                      for dir in ["system", "vendor"]]
+                      for dir in ["system", "system/system", "vendor", "vendor/vendor"]]
 
 class DeviceTree:
 	"""
