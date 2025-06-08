@@ -55,25 +55,44 @@ class DeviceTree:
 		self.aik_manager = AIKManager()
 		self.image_info = self.aik_manager.unpackimg(image)
 
-		assert self.image_info.ramdisk, "Ramdisk not found"
+		# Determinar qué ramdisk usar basado en la información extraída
+		ramdisk_path = None
+		if self.image_info.ramdisk and self.image_info.ramdisk.is_dir():
+			LOGD("Using standard ramdisk")
+			ramdisk_path = self.image_info.ramdisk
+		elif self.image_info.vendor_ramdisk and self.image_info.vendor_ramdisk.is_dir():
+			LOGD("Using vendor_ramdisk (vendor_boot v4 detected)")
+			ramdisk_path = self.image_info.vendor_ramdisk
+		else:
+			raise AssertionError("No valid ramdisk found (neither ramdisk nor vendor_ramdisk)")
 
 		LOGD("Getting device infos...")
 		self.build_prop = BuildProp()
-		for build_prop in [self.image_info.ramdisk / location for location in BUILDPROP_LOCATIONS]:
-			if not build_prop.is_file():
+		
+		# Buscar archivos build.prop en el ramdisk disponible
+		build_prop_found = False
+		for build_prop_location in [ramdisk_path / location for location in BUILDPROP_LOCATIONS]:
+			if not build_prop_location.is_file():
 				continue
 
-			self.build_prop.import_props(build_prop)
+			LOGD(f"Loading build.prop from {build_prop_location}")
+			self.build_prop.import_props(build_prop_location)
+			build_prop_found = True
 
+		# Si no se encuentra ningún build.prop, lanzar error en lugar de crear uno
+		if not build_prop_found:
+			raise AssertionError("No build.prop file found in the ramdisk")
+
+		# Crear DeviceInfo con el build.prop encontrado
 		self.device_info = DeviceInfo(self.build_prop)
 
 		# Generate fstab
 		fstab = None
-		for fstab_location in [self.image_info.ramdisk / location for location in FSTAB_LOCATIONS]:
+		for fstab_location in [ramdisk_path / location for location in FSTAB_LOCATIONS]:
 			if not fstab_location.is_file():
 				continue
 
-			LOGD(f"Generating fstab using {fstab} as reference...")
+			LOGD(f"Generating fstab using {fstab_location} as reference...")
 			fstab = Fstab(fstab_location)
 			break
 
@@ -84,7 +103,7 @@ class DeviceTree:
 
 		# Search for init rc files
 		self.init_rcs: List[Path] = []
-		for init_rc_path in [self.image_info.ramdisk / location for location in INIT_RC_LOCATIONS]:
+		for init_rc_path in [ramdisk_path / location for location in INIT_RC_LOCATIONS]:
 			if not init_rc_path.is_dir():
 				continue
 
