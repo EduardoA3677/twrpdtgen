@@ -5,7 +5,7 @@ description = "A Python library/script to automatically generate TWRP-compatible
 authors = ["Sebastiano Barezzi <barezzisebastiano@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/twrpdtgen/twrpdtgen"
+repository = "https://github.com/EduardoA3677/twrpdtgen"
 
 [tool.poetry.scripts]
 twrpdtgen = 'twrpdtgen.main:main'
