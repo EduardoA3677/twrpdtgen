@@ -14,7 +14,7 @@ twrpdtgen = 'twrpdtgen.main:main'
 python = "^3.8"
 GitPython = "^3.1.27"
 Jinja2 = "^3.1.1"
-sebaubuntu-libs = { git = "https://github.com/EduardoA3677/sebaubuntu-libs.git", rev = "v1.5.0" }
+sebaubuntu-libs = { git = "https://github.com/EduardoA3677/sebaubuntu_libs.git", rev = "v1.5.0" }
 
 [tool.poetry.dev-dependencies]
 
