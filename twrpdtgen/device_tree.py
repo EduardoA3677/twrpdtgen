@@ -27,9 +27,9 @@ BUILDPROP_LOCATIONS = [
 
 # Ubicaciones dentro del ramdisk extraído
 BUILDPROP_LOCATIONS += [Path() / dir / "build.prop"
-                        for dir in ["system", "vendor"]]
+                        for dir in ["system", "vendor", "product", ]]
 BUILDPROP_LOCATIONS += [Path() / dir / "etc" / "build.prop"
-                        for dir in ["system", "vendor"]]
+                        for dir in ["system", "vendor", "product" ]]
 
 # Ubicaciones adicionales específicas para el contexto del dump
 def get_extended_buildprop_locations(base_path: Path):
@@ -241,8 +241,8 @@ class DeviceTree:
 			git_global_email, git_global_name = None, None
 
 		if git_global_email is None or git_global_name is None:
-			git_config_writer.set_value('user', 'email', 'barezzisebastiano@gmail.com')
-			git_config_writer.set_value('user', 'name', 'Sebastiano Barezzi')
+			git_config_writer.set_value('user', 'email', 'ealvarado261500@gmail.com')
+			git_config_writer.set_value('user', 'name', 'EduardoA3677')
 
 		git_repo.index.add(["*"])
 		commit_message = self._render_template(None, "commit_message", to_file=False)
