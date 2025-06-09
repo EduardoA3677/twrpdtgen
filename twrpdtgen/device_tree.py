@@ -27,9 +27,9 @@ BUILDPROP_LOCATIONS = [
 
 # Ubicaciones dentro del ramdisk extraído
 BUILDPROP_LOCATIONS += [Path() / dir / "build.prop"
-                        for dir in ["system", "vendor", "product", ]]
+                        for dir in ["system", "system/system", "vendor", "product" ]]
 BUILDPROP_LOCATIONS += [Path() / dir / "etc" / "build.prop"
-                        for dir in ["system", "vendor", "product" ]]
+                        for dir in ["system", "system/system", "vendor", "product" ]]
 
 # Ubicaciones adicionales específicas para el contexto del dump
 def get_extended_buildprop_locations(base_path: Path):
